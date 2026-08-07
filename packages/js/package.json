@@ -1,0 +1,27 @@
+{
+  "name": "decicore-sdk",
+  "version": "1.0.0",
+  "description": "Official JavaScript/TypeScript SDK for the DECICORE API",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["decicore", "sdk", "api", "crud", "ai"],
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^5.4.0"
+  }
+}

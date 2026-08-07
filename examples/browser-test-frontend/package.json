@@ -1,0 +1,10 @@
+{
+  "name": "browser-test-frontend",
+  "private": true,
+  "scripts": {
+    "start": "npx --yes serve -l 5555 ."
+  },
+  "dependencies": {
+    "decicore-sdk": "file:../decicore-sdk-1.0.0.tgz"
+  }
+}

@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "decicore-sdk"
+version = "1.0.0"
+description = "Official Python SDK for the DECICORE API"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Deciphai", email = "support@deciphai.com" }]
+keywords = ["decicore", "sdk", "api", "crud", "ai"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = ["requests>=2.28.0"]
+
+[project.urls]
+Homepage = "https://api.decicore.dev"
+
+[tool.setuptools.packages.find]
+include = ["decicore_sdk*"]

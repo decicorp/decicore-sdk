@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DECICORE SDK — Browser Test Console</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2rem; min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #08070f; color: #f3f1fb;
+  }
+  h1 { font-size: 1.3rem; margin: 0 0 0.25rem; }
+  .sub { color: #948dab; font-size: 0.85rem; margin: 0 0 1.5rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1rem; align-items: start; }
+  .card {
+    background: linear-gradient(180deg, #16131f 0%, #120f1a 100%);
+    border: 1px solid rgba(167,139,250,0.14); border-radius: 12px; padding: 1.1rem 1.2rem;
+  }
+  .card h2 { font-size: 0.92rem; margin: 0 0 0.2rem; }
+  .card .hint { color: #948dab; font-size: 0.75rem; margin: 0 0 0.8rem; line-height: 1.4; }
+  label { display: block; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.03em; color: #948dab; margin: 0.55rem 0 0.3rem; }
+  input, textarea {
+    width: 100%; padding: 0.5rem 0.6rem; border-radius: 7px; font-family: inherit;
+    border: 1px solid rgba(167,139,250,0.18); background: #0c0a15; color: #f3f1fb; font-size: 0.83rem;
+  }
+  textarea { font-family: ui-monospace, Consolas, monospace; font-size: 0.78rem; resize: vertical; min-height: 4.5em; }
+  input:focus, textarea:focus { outline: none; border-color: #7c3aed; }
+  button {
+    margin-top: 0.7rem; padding: 0.5rem 0.9rem; border-radius: 7px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; font-weight: 600; font-size: 0.8rem;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .out {
+    margin-top: 0.7rem; padding: 0.6rem 0.7rem; border-radius: 7px; background: #0c0a15;
+    border: 1px solid rgba(167,139,250,0.12); font-family: ui-monospace, Consolas, monospace;
+    font-size: 0.74rem; white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow: auto;
+    display: none;
+  }
+  .out.show { display: block; }
+  .out.ok { border-color: rgba(52,211,153,0.35); color: #a7f3d5; }
+  .out.err { border-color: rgba(248,113,113,0.35); color: #fca5a5; }
+  .locked { opacity: 0.4; pointer-events: none; }
+  .session-bar {
+    display: none; align-items: center; gap: 0.6rem; padding: 0.55rem 0.8rem; border-radius: 8px;
+    background: rgba(52,211,153,0.08); border: 1px solid rgba(52,211,153,0.25); color: #a7f3d5;
+    font-size: 0.78rem; margin-bottom: 1.2rem;
+  }
+  .session-bar.show { display: flex; }
+  .session-bar code { color: #f3f1fb; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+</style>
+</head>
+<body>
+  <h1>DECICORE SDK — Browser Test Console</h1>
+  <p class="sub">
+    Runs against the real <code id="base-url-label">https://api.decicore.dev</code> using
+    <code>decicore-sdk</code> installed from the exact tarball <code>npm pack</code> would publish
+    (see <code>package.json</code> in this folder). Every button below is a real API call.
+  </p>
+
+  <div id="session-bar" class="session-bar">
+    Signed in as <code id="session-info"></code>
+    <button id="logout-btn" style="margin:0; padding:0.25rem 0.6rem;">Sign out</button>
+  </div>
+
+  <div class="grid">
+
+    <div class="card" id="card-login">
+      <h2>1. Login</h2>
+      <p class="hint">The only call that works before you're authenticated. Always logs into the project's production context (never DECICORE's tenant-level dev/Studio context) — Project ID is required. Wrong credentials still prove the wiring works — you'll get a real 401 back.</p>
+      <label>API base URL</label>
+      <input id="base-url" value="https://api.decicore.dev" />
+      <div class="row2">
+        <div><label>Email</label><input id="login-email" placeholder="you@company.com" /></div>
+        <div><label>Password</label><input id="login-password" type="password" /></div>
+      </div>
+      <label>Project ID</label>
+      <input id="login-project" placeholder="PRJ0000001" />
+      <label>Tenant ID <span style="font-weight:400">(only if the account has more than one)</span></label>
+      <input id="login-tenant" placeholder="optional" />
+      <button id="login-btn">Login</button>
+      <pre class="out" id="out-login"></pre>
+    </div>
+
+    <div class="card" id="card-client">
+      <h2>2. Client</h2>
+      <p class="hint">Everything below is built fresh from the logged-in session on every call — same project you logged into, no separate field needed.</p>
+    </div>
+
+    <div class="card locked" data-needs-session>
+      <h2>List records</h2>
+      <label>Collection</label>
+      <input id="list-collection" placeholder="Products" />
+      <label>Filters (JSON, optional)</label>
+      <textarea id="list-filters" placeholder='{"status": "active"}'></textarea>
+      <button id="list-btn">Run client.list()</button>
+      <pre class="out" id="out-list"></pre>
+    </div>
+
+    <div class="card locked" data-needs-session>
+      <h2>Get record</h2>
+      <div class="row2">
+        <div><label>Collection</label><input id="get-collection" placeholder="Products" /></div>
+        <div><label>ID</label><input id="get-id" placeholder="PROD0000001" /></div>
+      </div>
+      <button id="get-btn">Run client.get()</button>
+      <pre class="out" id="out-get"></pre>
+    </div>
+
+    <div class="card locked" data-needs-session>
+      <h2>Create record</h2>
+      <label>Collection</label>
+      <input id="create-collection" placeholder="Products" />
+      <label>Data (JSON)</label>
+      <textarea id="create-data" placeholder='{"name": "Test Monitor", "price": 299}'></textarea>
+      <button id="create-btn">Run client.create()</button>
+      <pre class="out" id="out-create"></pre>
+    </div>
+
+    <div class="card locked" data-needs-session>
+      <h2>Update record</h2>
+      <div class="row2">
+        <div><label>Collection</label><input id="update-collection" placeholder="Products" /></div>
+        <div><label>ID</label><input id="update-id" placeholder="PROD0000001" /></div>
+      </div>
+      <label>Data (JSON)</label>
+      <textarea id="update-data" placeholder='{"price": 249}'></textarea>
+      <button id="update-btn">Run client.update()</button>
+      <pre class="out" id="out-update"></pre>
+    </div>
+
+    <div class="card locked" data-needs-session>
+      <h2>Delete record</h2>
+      <div class="row2">
+        <div><label>Collection</label><input id="delete-collection" placeholder="Products" /></div>
+        <div><label>ID</label><input id="delete-id" placeholder="PROD0000001" /></div>
+      </div>
+      <button id="delete-btn">Run client.delete()</button>
+      <pre class="out" id="out-delete"></pre>
+    </div>
+
+    <div class="card locked" data-needs-session>
+      <h2>Run AI Action</h2>
+      <label>Action ID</label>
+      <input id="action-id" placeholder="AIA0000123" />
+      <label>Prompt (optional)</label>
+      <textarea id="action-prompt" placeholder="Extra input for this run"></textarea>
+      <button id="action-btn">Run client.runAction()</button>
+      <pre class="out" id="out-action"></pre>
+    </div>
+
+    <div class="card locked" data-needs-session>
+      <h2>Form schema</h2>
+      <label>Form ID</label>
+      <input id="form-id" placeholder="FRM0000001" />
+      <button id="form-btn">Run client.forms.get()</button>
+      <pre class="out" id="out-form"></pre>
+    </div>
+
+    <div class="card locked" data-needs-session>
+      <h2>Dashboards</h2>
+      <label>Dashboard ID <span style="font-weight:400">(blank = list all)</span></label>
+      <input id="dashboard-id" placeholder="DSH0000001" />
+      <label>Filters (JSON, optional)</label>
+      <textarea id="dashboard-filters" placeholder='{"time_range_days": 30}'></textarea>
+      <button id="dashboard-btn">Run client.dashboards.get() / list()</button>
+      <pre class="out" id="out-dashboard"></pre>
+    </div>
+
+  </div>
+
+  <script type="importmap">
+    { "imports": { "decicore-sdk": "./node_modules/decicore-sdk/dist/index.mjs" } }
+  </script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
